@@ -5,6 +5,7 @@ const pool = require('./src/config/config')
 const app = express()
 // Import routes
 const transactionRoutes = require('./src/routes/transactionRoutes');
+const authRoutes = require('./src/routes/authRoutes')
 // Import other routes as needed
 
 // Middleware to parse JSON bodies
@@ -12,6 +13,7 @@ app.use(express.json());
 
 // Routes
 app.use('/transactions', transactionRoutes);
+app.use('/auth', authRoutes);
 
 app.listen(3001, () => {
     console.log('Server is listening on http://localhost:3001');
