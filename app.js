@@ -17,7 +17,7 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // Using routes
-app.use("/", routes);
+app.use("/api", routes);
 
 app.use((err, req, res, next) => {
     if (err instanceof rateLimit.RateLimitError) {

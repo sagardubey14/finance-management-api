@@ -1,11 +1,12 @@
 const mysql = require('mysql');
 
+
 // Create a MySQL connection pool
 const pool = mysql.createPool({
   connectionLimit: 10,
   host: 'localhost',
   user: 'root',
-  password: '',
+  password: "",
   database: 'finance_api'
 });
 
