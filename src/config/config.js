@@ -6,14 +6,13 @@ const pool = mysql.createPool({
   host: 'localhost',
   user: 'root',
   password: '',
-  database: 'API'
-}, (err, connection) => {
-  if (err) {
-    console.error('Error establishing MySQL connection:', err.message);
-  } else {
-    console.log('MySQL connection established successfully.');
-    // Here you can send your message
-  }
+  database: 'finance_api'
 });
 
+// Listen for errors on the pool
+pool.on('error', (err) => {
+  console.error('Error in MySQL connection pool:', err.message);
+});
+
+// Export the pool object
 module.exports = pool;

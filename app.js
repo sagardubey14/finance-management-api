@@ -1,34 +1,32 @@
-const express = require('express')
-const pool = require('./src/config/config')
+const express = require('express');
+const rateLimit = require('express-rate-limit');
+const routes = require('./src/routes');
 
-
-const app = express()
-// Import routes
-const transactionRoutes = require('./src/routes/transactionRoutes');
-const authRoutes = require('./src/routes/authRoutes')
-// Import other routes as needed
+const app = express();
 
 // Middleware to parse JSON bodies
 app.use(express.json());
 
-// Routes
-app.use('/transactions', transactionRoutes);
-app.use('/auth', authRoutes);
-
-app.listen(3001, () => {
-    console.log('Server is listening on http://localhost:3001');
+// Rate limiter setup
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 50, // limit each IP to 100 requests per windowMs
 });
-// app.get('/', (req, res) => {
-//     // Retrieve a connection from the pool
-//     pool.getConnection((err, connection) => {
-//         if (err) {
-//             console.error('Error getting MySQL connection:', err.message);
-//             res.status(500).send('Internal Server Error');
-//         } else {
-//             console.log('Got a MySQL connection from the pool.');
-//             // Release the connection back to the pool
-//             connection.release();
-//             res.send('hello');
-//         }
-//     });
-// });
+
+// Apply the rate limiter to all requests
+app.use(limiter);
+
+// Using routes
+app.use("/", routes);
+
+app.use((err, req, res, next) => {
+    if (err instanceof rateLimit.RateLimitError) {
+      res.status(429).json({ message: "Too many requests from this IP, please try again later." });
+    } else {
+      next(err);
+    }
+  });
+
+app.listen(3001);
+
+module.exports = app;

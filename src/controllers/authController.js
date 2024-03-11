@@ -1,5 +1,3 @@
-// controllers/authController.js
-
 const pool = require('../config/config');
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
@@ -16,7 +14,18 @@ const registerUser = async (req, res) => {
     if (!Name || !Email || !Password) {
       return res.status(400).json({ error: 'Name, Email, and Password are required fields' });
     }
-    const hashedPass = await bcrypt.hash(Password, 10);
+    const emailExistsQuery = 'SELECT COUNT(*) AS count FROM user WHERE Email = ?';
+    pool.query(emailExistsQuery, [Email], async (error, results) => {
+      if (error) {
+        console.error('Error checking email existence:', error);
+        return res.status(500).json({ error: 'Error checking email existence' });
+      }
+
+      const emailCount = results[0].count;
+      if (emailCount > 0) {
+        return res.status(400).json({ error: 'Email already exists' });
+      }
+      const hashedPass = await bcrypt.hash(Password, 10);
 
     // Insert user into database
     const query = 'INSERT INTO user (Name, Email, Password) VALUES (?, ?, ?)';
@@ -27,18 +36,24 @@ const registerUser = async (req, res) => {
       }
       res.status(201).json({ message: 'User registered successfully', userID: results.insertId });
     });
+    })
+    
   } catch (error) {
     console.error('Error registering user:', error);
     res.status(500).json({ error: 'Error registering user' });
   }
 };
 
+
+
+
+
+
 // Function to log in a user
 const loginUser = async (req, res) => {
     try {
         // Destructure request body
         const {Email, Password } = req.body;
-        
         // Check if required fields are present
         if (!Email || !Password) {
           return res.status(400).json({ error: 'Email and Password are required fields' });
@@ -56,6 +71,9 @@ const loginUser = async (req, res) => {
     
           // Compare provided password with hashed password from database
           const user = results[0];
+          
+          const hashedPass = await bcrypt.hash(Password, 10);
+          
           const passwordMatch = await bcrypt.compare(Password, user.Password);
     
           if (!passwordMatch) {
